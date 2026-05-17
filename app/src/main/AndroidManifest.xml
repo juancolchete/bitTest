@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.google.com/apk/manifest">
+<manifest xmlns:android="http://schemas.google.com/apk/manifest"
+    package="com.relay.celo">
 
+    <!-- Hardware & Network Permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
@@ -14,7 +16,7 @@
         android:theme="@android:style/Theme.NoTitleBar">
         
         <activity
-            android:name=".MainActivity"
+            android:name="com.relay.celo.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
