@@ -13,14 +13,15 @@ import android.widget.TextView
 
 class MainActivity : Activity() {
 
-    // Safely store the text view here so we can update it anywhere without crashing
     private lateinit var statusText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 1. Force a modern Material Theme so the system permission dialog doesn't break
+        setTheme(android.R.style.Theme_Material_NoActionBar)
         super.onCreate(savedInstanceState)
 
-        // 1. Explicitly force the layout to stretch across the entire screen
-        val layoutParams = ViewGroup.LayoutParams(
+        // 2. Setup the background layout
+        val rootParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         )
@@ -28,25 +29,32 @@ class MainActivity : Activity() {
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setBackgroundColor(Color.parseColor("#1E1E1E")) // Dark Grey
-            this.layoutParams = layoutParams
+            setBackgroundColor(Color.parseColor("#1E1E1E"))
+            layoutParams = rootParams
         }
 
-        // 2. Create the status text
+        // 3. Setup the text WITH explicit layout dimensions so it cannot be invisible
         statusText = TextView(this).apply {
-            text = "Celo Bitchat Relay\n\nChecking System Permissions..."
-            setTextColor(Color.parseColor("#47E5BC")) // Bright Celo Green
-            textSize = 20f
-            textAlignment = TextView.TEXT_ALIGNMENT_CENTER
-            setPadding(32, 32, 32, 32)
+            text = "Initializing Celo Relay..."
+            setTextColor(Color.parseColor("#47E5BC"))
+            textSize = 22f
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         }
 
-        // 3. Draw the UI
         layout.addView(statusText)
         setContentView(layout)
 
-        // 4. Trigger the system permission popups
-        requestRelayPermissions()
+        // 4. Safely request permissions and print any crashes to the screen
+        try {
+            requestRelayPermissions()
+        } catch (e: Exception) {
+            statusText.text = "Error caught:\n${e.message}"
+            statusText.setTextColor(Color.RED)
+        }
     }
 
     private fun requestRelayPermissions() {
@@ -54,7 +62,6 @@ class MainActivity : Activity() {
             Manifest.permission.ACCESS_FINE_LOCATION
         )
 
-        // Android 12+ (API 31+) needs specific Bluetooth runtime permissions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             requiredPermissions.add(Manifest.permission.BLUETOOTH_SCAN)
             requiredPermissions.add(Manifest.permission.BLUETOOTH_ADVERTISE)
@@ -66,10 +73,10 @@ class MainActivity : Activity() {
         }
 
         if (missingPermissions.isNotEmpty()) {
-            // Trigger the OS popup
+            statusText.text = "Requesting ${missingPermissions.size} permissions..."
             requestPermissions(missingPermissions.toTypedArray(), 100)
         } else {
-            statusText.text = "Celo Bitchat Relay\n\nPermissions Granted.\nReady to initialize Mesh!"
+            statusText.text = "Permissions Granted!\nReady for Mesh."
         }
     }
 
@@ -84,9 +91,10 @@ class MainActivity : Activity() {
             val allGranted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
             
             if (allGranted) {
-                statusText.text = "Celo Bitchat Relay\n\nPermissions Granted.\nReady to initialize Mesh!"
+                statusText.text = "Permissions Granted!\nReady for Mesh."
+                statusText.setTextColor(Color.parseColor("#47E5BC"))
             } else {
-                statusText.text = "Celo Bitchat Relay\n\nERROR: App cannot function without Bluetooth & Location permissions."
+                statusText.text = "ERROR: Permissions denied.\nApp cannot function."
                 statusText.setTextColor(Color.RED)
             }
         }
