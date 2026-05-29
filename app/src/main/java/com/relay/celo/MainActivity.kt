@@ -6,9 +6,6 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.view.Gravity
-import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.TextView
 
 class MainActivity : Activity() {
@@ -16,39 +13,14 @@ class MainActivity : Activity() {
     private lateinit var statusText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 1. Force a modern Material Theme so the system permission dialog doesn't break
-        setTheme(android.R.style.Theme_Material_NoActionBar)
         super.onCreate(savedInstanceState)
+        
+        // This forces Android to load the UI from the XML file we just created
+        setContentView(R.layout.activity_main)
 
-        // 2. Setup the background layout
-        val rootParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
-        )
+        // Find the text view by the ID we gave it in the XML
+        statusText = findViewById(R.id.statusText)
 
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            setBackgroundColor(Color.parseColor("#1E1E1E"))
-            layoutParams = rootParams
-        }
-
-        // 3. Setup the text WITH explicit layout dimensions so it cannot be invisible
-        statusText = TextView(this).apply {
-            text = "Initializing Celo Relay..."
-            setTextColor(Color.parseColor("#47E5BC"))
-            textSize = 22f
-            gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        }
-
-        layout.addView(statusText)
-        setContentView(layout)
-
-        // 4. Safely request permissions and print any crashes to the screen
         try {
             requestRelayPermissions()
         } catch (e: Exception) {
@@ -73,7 +45,7 @@ class MainActivity : Activity() {
         }
 
         if (missingPermissions.isNotEmpty()) {
-            statusText.text = "Requesting ${missingPermissions.size} permissions..."
+            statusText.text = "Requesting permissions..."
             requestPermissions(missingPermissions.toTypedArray(), 100)
         } else {
             statusText.text = "Permissions Granted!\nReady for Mesh."
