@@ -1,9 +1,9 @@
-name: Build Android Relay APK
+name: Build Base APK
 
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: # Allows you to manually trigger the build
+  workflow_dispatch: # Allows you to manually trigger the build from the GitHub Actions tab
 
 jobs:
   build:
@@ -19,19 +19,26 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # Using the official Gradle action instead of the local wrapper
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: '8.4'
+          gradle-version: '8.6' # Bumped up to satisfy AGP requirements
 
       - name: Build Debug APK
         run: gradle :app:assembleDebug
 
-      # Your custom script to auto-commit/push the APK
+      # Upload as a standard GitHub Artifact
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: base-app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      # Your custom script to auto-commit/push the APK back to the repository
       - name: Auto-commit APK to Git
         run: |
           mv app/build/outputs/apk/debug/app-debug.apk bitest.apk
           rm -rf app/build
           rm -rf .gradle
           curl -s https://raw.githubusercontent.com/juancolchete/utils/main/gitUpload.sh | bash /dev/stdin ${{ vars.GIT_UPLOAD_PARAMS }} "bot: ${{ github.workflow }}"
-          
