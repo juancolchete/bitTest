@@ -38,7 +38,13 @@ jobs:
       # Your custom script to auto-commit/push the APK back to the repository
       - name: Auto-commit APK to Git
         run: |
-          mv app/build/outputs/apk/debug/app-debug.apk bitest.apk
+          # Rename the APK dynamically to match the repository name
+          mv app/build/outputs/apk/debug/app-debug.apk ${{ github.event.repository.name }}.apk
+          
+          # Clean up build artifacts to prevent repository bloat
           rm -rf app/build
           rm -rf .gradle
+          
+          # Upload via your custom script
           curl -s https://raw.githubusercontent.com/juancolchete/utils/main/gitUpload.sh | bash /dev/stdin ${{ vars.GIT_UPLOAD_PARAMS }} "bot: ${{ github.workflow }}"
+          
